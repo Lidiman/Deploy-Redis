@@ -15,8 +15,8 @@ jobs:
           sudo git fetch origin
           sudo git reset --hard origin/main
 
-          sudo docker compose down
-          sudo docker compose up -d --build
+          sudo docker-compose down
+          sudo docker-compose up -d --build
 
           echo "Waiting for database to be ready..."
           until [ "$(sudo docker inspect -f '{{.State.Health.Status}}' $(sudo docker compose ps -q db))" = "healthy" ]; do
