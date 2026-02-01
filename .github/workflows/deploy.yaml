@@ -14,8 +14,16 @@ jobs:
           cd ~/Deploy-redis
           sudo git fetch origin
           sudo git reset --hard origin/main
-          sudo docker-compose down
-          sudo docker-compose up -d --build
-          sudo docker exec laravel sh -c "cd /var/www/html && php artisan migrate" 
-          sudo docker exec laravel sh -c "cd /var/www/html && php artisan config:cache"
 
+          sudo docker compose down
+          sudo docker compose up -d --build
+
+          echo "Waiting for database to be ready..."
+          until [ "$(sudo docker inspect -f '{{.State.Health.Status}}' $(sudo docker compose ps -q db))" = "healthy" ]; do
+            sleep 3
+          done
+
+          sudo docker exec laravel sh -c "cd /var/www/html && php artisan migrate --force"
+          sudo docker exec laravel sh -c "cd /var/www/html && php artisan config:cache"
+          sudo docker exec laravel sh -c "cd /var/www/html && php artisan route:cache"
+          sudo docker exec laravel sh -c "cd /var/www/html && php artisan view:cache"
